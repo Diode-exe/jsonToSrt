@@ -59,5 +59,5 @@ with open(srtFile, 'w', encoding='utf-8') as f:
             continue
         f.write(f"{i}\n{seconds_to_srt(seg_start)} --> {seconds_to_srt(seg_end)}\n{text}\n\n")
 
-end = time.perf_counter()
-print(f"Conversion completed in {end - timer_start:.6f} seconds.")
+timer_end = time.perf_counter()
+print(f"Conversion completed in {timer_end - timer_start:.6f} seconds.")
