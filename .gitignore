@@ -1,0 +1,5 @@
+.venv/
+*.json
+*.srt
+*.mp3
+__pycache__/
