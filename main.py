@@ -24,16 +24,20 @@ parser.add_argument('--file', type=str, help='The JSON file to read from')
 args = parser.parse_args()
 
 try:
-    data = json.load(open(args.file, 'r', encoding='utf-8'))
+    with open(args.file, 'r', encoding='utf-8') as fh:
+        data = json.load(fh)
     print("JSON file loaded successfully.")
-except TypeError:
-    print("No file specified. Please provide a JSON file using the --file argument.")
+except TypeError as e:
+    if not args.file:
+        print("No file specified. Please provide a JSON file using the --file argument.")
+    else:
+        print(f"An error occurred while trying to read the file '{args.file}': {e}.")
     sys.exit(1)
 except FileNotFoundError:
     print(f"The file '{args.file}' was not found.")
     sys.exit(1)
-except json.JSONDecodeError:
-    print(f"Error decoding JSON from '{args.file}'.")
+except json.JSONDecodeError as e:
+    print(f"Error decoding JSON from '{args.file}': {e}.")
     sys.exit(1)
 
 segments = data.get('segments', [])
@@ -43,10 +47,17 @@ with open(srtFile, 'w', encoding='utf-8') as f:
     i = 0
     for segment in segments:
         i += 1
-        start = segment['start']
-        end = segment['end']
-        text = segment['text']
-        f.write(f"{i}\n{seconds_to_srt(start)} --> {seconds_to_srt(end)}\n{text}\n\n")
+        try:
+            seg_start = float(segment['start'])
+            seg_end = float(segment['end'])
+            text = segment['text']
+        except (ValueError, TypeError) as e:
+            print(f"Error converting segment times to float: {e}")
+            continue
+        except KeyError as e:
+            print(f"Missing expected key in segment: {e}")
+            continue
+        f.write(f"{i}\n{seconds_to_srt(seg_start)} --> {seconds_to_srt(seg_end)}\n{text}\n\n")
 
 end = time.perf_counter()
-print(f"Conversion completed in {end - timer_start:.2f} seconds.")
+print(f"Conversion completed in {end - timer_start:.6f} seconds.")
